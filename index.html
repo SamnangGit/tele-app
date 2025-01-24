@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Telegram Mini App</title>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check if running inside Telegram
+      if (window.Telegram?.WebApp) {
+        Telegram.WebApp.ready(); // Initialize the WebApp
+
+        // Extract user data from initData
+        const initData = Telegram.WebApp.initData;
+        const params = new URLSearchParams(initData);
+        const user = JSON.parse(params.get('user') || '{}');
+
+        // Log the username
+        if (user.username) {
+          console.log('Username:', user.username);
+        } else {
+          console.log('User has no Telegram username.');
+        }
+      } else {
+        console.error('Open this page in Telegram to see the username!');
+      }
+    });
+  </script>
+</head>
+<body>
+  <h1>Check the browser console for the username!</h1>
+</body>
+</html>
