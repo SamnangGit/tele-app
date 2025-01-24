@@ -1,31 +1,75 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Telegram Mini App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      text-align: center;
+      background-color: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      color: #2a2a2a;
+      margin-bottom: 1.5rem;
+    }
+
+    #username-display {
+      font-size: 1.2rem;
+      color: #333;
+      padding: 1rem;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      margin: 0 auto;
+      max-width: 300px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Your Telegram Username</h1>
+    <p id="username-display">Loading...</p>
+  </div>
+
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       // Check if running inside Telegram
       if (window.Telegram?.WebApp) {
-        Telegram.WebApp.ready(); // Initialize the WebApp
+        Telegram.WebApp.ready();
 
         // Extract user data from initData
         const initData = Telegram.WebApp.initData;
         const params = new URLSearchParams(initData);
         const user = JSON.parse(params.get('user') || '{}');
 
-        // Log the username
+        // Update the UI
+        const usernameDisplay = document.getElementById('username-display');
         if (user.username) {
-          console.log('Username:', user.username);
+          usernameDisplay.textContent = `@${user.username}`;
         } else {
-          console.log('User has no Telegram username.');
+          usernameDisplay.textContent = "Username not set.";
         }
       } else {
-        console.error('Open this page in Telegram to see the username!');
+        // Show error if not in Telegram
+        document.getElementById('username-display').textContent = 
+          "Open this page in Telegram to see your username!";
       }
     });
   </script>
-</head>
-<body>
-  <h1>Check the browser console for the username!</h1>
 </body>
 </html>
