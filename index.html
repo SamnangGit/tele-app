@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Telegram Mini App</title>
   <style>
+    /* Existing styles remain the same */
     body {
       font-family: Arial, sans-serif;
       background-color: #f0f2f5;
@@ -38,6 +39,21 @@
       margin: 0 auto;
       max-width: 300px;
     }
+
+    /* New debug info styling */
+    #debug-info {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 1rem;
+      font-family: monospace;
+      max-height: 200px;
+      overflow-y: auto;
+      font-size: 0.9rem;
+    }
   </style>
 </head>
 <body>
@@ -45,29 +61,88 @@
     <h1>Your Telegram Username</h1>
     <p id="username-display">Loading...</p>
   </div>
+  
+  <!-- Debug information container -->
+  <div id="debug-info"></div>
 
   <script>
+    // Function to display debug info on page
+    function showDebugInfo(message, type = 'info') {
+      const debugDiv = document.getElementById('debug-info');
+      const colors = {
+        info: '#00ff00',
+        error: '#ff0000',
+        warn: '#ffff00'
+      };
+      
+      const entry = document.createElement('div');
+      entry.style.color = colors[type] || '#ffffff';
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      debugDiv.appendChild(entry);
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
-      // Check if running inside Telegram
+      // Initial status
+      showDebugInfo('Starting initialization...');
+      
       if (window.Telegram?.WebApp) {
-        Telegram.WebApp.ready();
+        showDebugInfo('Telegram WebApp API detected', 'info');
+        
+        try {
+          Telegram.WebApp.ready();
+          showDebugInfo('WebApp.ready() executed successfully', 'info');
+          
+          const initData = Telegram.WebApp.initData;
+          showDebugInfo(`InitData received: ${initData ? 'Yes' : 'No'}`, 
+                       initData ? 'info' : 'warn');
 
-        // Extract user data from initData
-        const initData = Telegram.WebApp.initData;
-        const params = new URLSearchParams(initData);
-        const user = JSON.parse(params.get('user') || '{}');
+          if (!initData) {
+            document.getElementById('username-display').textContent = 
+              "⚠️ Missing initialization data!";
+            showDebugInfo('Critical error: initData is empty', 'error');
+            return;
+          }
 
-        // Update the UI
-        const usernameDisplay = document.getElementById('username-display');
-        if (user.username) {
-          usernameDisplay.textContent = `@${user.username}`;
-        } else {
-          usernameDisplay.textContent = "Username not set.";
+          const params = new URLSearchParams(initData);
+          const userString = params.get('user');
+          
+          if (!userString) {
+            document.getElementById('username-display').textContent = 
+              "⚠️ User data not found!";
+            showDebugInfo('Error: User data missing in initData', 'error');
+            return;
+          }
+
+          showDebugInfo('User data found in initData', 'info');
+          
+          try {
+            const user = JSON.parse(userString);
+            showDebugInfo('User data parsed successfully', 'info');
+            
+            const usernameDisplay = document.getElementById('username-display');
+            if (user.username) {
+              usernameDisplay.textContent = `@${user.username}`;
+              showDebugInfo(`Username found: ${user.username}`, 'info');
+            } else {
+              usernameDisplay.textContent = "ℹ️ Username not set";
+              showDebugInfo('Username not available in user data', 'warn');
+            }
+          } catch (parseError) {
+            document.getElementById('username-display').textContent = 
+              "⚠️ Error parsing user data!";
+            showDebugInfo(`Parse error: ${parseError.message}`, 'error');
+          }
+          
+        } catch (initError) {
+          document.getElementById('username-display').textContent = 
+            "⚠️ Initialization failed!";
+          showDebugInfo(`Initialization error: ${initError.message}`, 'error');
         }
+        
       } else {
-        // Show error if not in Telegram
         document.getElementById('username-display').textContent = 
-          "Open this page in Telegram to see your username!";
+          "🔴 Open in Telegram to see username!";
+        showDebugInfo('Telegram WebApp API not detected', 'error');
       }
     });
   </script>
